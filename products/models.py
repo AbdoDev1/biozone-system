@@ -1,13 +1,15 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.core.validators import FileExtensionValidator
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='categories/', blank=True, null=True,
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])] )
+    image = models.ImageField(
+        upload_to='categories/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])]
+    )
     slug = models.SlugField(unique=True, allow_unicode=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,11 +29,16 @@ class Product(models.Model):
         on_delete=models.PROTECT,
         related_name='products',
     )
-    name = models.CharField(max_length=255)
+    name_ar = models.CharField(max_length=255)
+    name_en = models.CharField(max_length=255, blank=True)
     manufacturer = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='products/', blank=True, null=True,
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])] )
+    image = models.ImageField(
+        upload_to='products/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])]
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -39,10 +46,14 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'منتج'
         verbose_name_plural = 'المنتجات'
-        ordering = ['name']
+        ordering = ['name_ar']
+
+    @property
+    def display_name(self):
+        return self.name_en or self.name_ar
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 
 class ProductUnit(models.Model):
@@ -79,7 +90,7 @@ class ProductUnit(models.Model):
         ordering = ['size']
 
     def __str__(self):
-        return f"{self.product.name} — {self.name}"
+        return f"{self.product.display_name} — {self.name}"
 
     def get_price(self, qty):
         if self.wholesale_min_qty and qty >= self.wholesale_min_qty and self.wholesale_price:

@@ -64,17 +64,20 @@ class StockMovement(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.get_movement_type_display()} — {self.quantity} — {self.inventory.product_unit}"
+         return f"{self.inventory.product_unit.product.display_name}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        inv = self.inventory
-        if self.movement_type == self.MovementType.IN:
-            inv.quantity += self.quantity
-        elif self.movement_type == self.MovementType.OUT:
-            inv.quantity -= self.quantity
-        elif self.movement_type == self.MovementType.RESERVE:
-            inv.reserved += self.quantity
-        elif self.movement_type == self.MovementType.RELEASE:
-            inv.reserved -= self.quantity
-        inv.save()
+def save(self, *args, **kwargs):
+    is_new = self.pk is None
+    super().save(*args, **kwargs)
+    if not is_new:
+        return
+    inv = self.inventory
+    if self.movement_type == self.MovementType.IN:
+        inv.quantity += self.quantity
+    elif self.movement_type == self.MovementType.OUT:
+        inv.quantity -= self.quantity
+    elif self.movement_type == self.MovementType.RESERVE:
+        inv.reserved += self.quantity
+    elif self.movement_type == self.MovementType.RELEASE:
+        inv.reserved -= self.quantity
+    inv.save()

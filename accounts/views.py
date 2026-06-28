@@ -1,11 +1,10 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.db import models as django_models
 from .forms import RegisterForm, LoginForm
 from .models import User
+from inventory.models import Inventory
 
 
 def register_view(request):
@@ -57,4 +56,11 @@ def pending_view(request):
 def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-    return render(request, 'accounts/dashboard.html')
+
+    low_stock = Inventory.objects.filter(
+        quantity__lte=django_models.F('min_quantity')
+    ).select_related('product_unit__product')[:5]
+
+    return render(request, 'accounts/dashboard.html', {
+        'low_stock': low_stock,
+    })
