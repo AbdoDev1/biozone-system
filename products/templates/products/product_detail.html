@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} — Biozone{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="mb-4">
+        <a href="{% url 'products:category_detail' product.category.slug %}"
+           class="text-blue-600 hover:underline text-sm">
+            → {{ product.category.name }}
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-6 flex flex-col md:flex-row gap-8">
+        <!-- صورة المنتج -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                 class="w-full h-64 object-cover rounded-xl">
+            {% else %}
+            <div class="w-full h-64 bg-gray-50 rounded-xl flex items-center justify-center">
+                <span class="text-gray-300 text-6xl">+</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- بيانات المنتج -->
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold text-gray-800">{{ product.name }}</h1>
+            {% if product.manufacturer %}
+            <p class="text-gray-400 text-sm mt-1">{{ product.manufacturer }}</p>
+            {% endif %}
+            {% if product.description %}
+            <p class="text-gray-600 mt-4 text-sm leading-relaxed">{{ product.description }}</p>
+            {% endif %}
+
+            <!-- الوحدات والأسعار -->
+            <div class="mt-6 space-y-3">
+                <h2 class="font-semibold text-gray-700">الوحدات والأسعار</h2>
+                {% for unit in units %}
+                <div class="border border-gray-100 rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-gray-800">{{ unit.name }}</p>
+                        <p class="text-xs text-gray-400">
+                            {% if unit.qty_in_small > 1 %}
+                            يحتوي {{ unit.qty_in_small }} وحدة صغرى
+                            {% endif %}
+                        </p>
+                        {% if unit.wholesale_min_qty and unit.wholesale_price %}
+                        <p class="text-xs text-green-600 mt-1">
+                            سعر الجملة: {{ unit.wholesale_price }} جنيه
+                            (من {{ unit.wholesale_min_qty }} قطعة)
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="text-left">
+                        <p class="text-blue-600 font-bold text-lg">{{ unit.unit_price }} جنيه</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

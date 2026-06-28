@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} — Biozone{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'products:category_list' %}" class="text-blue-600 hover:underline text-sm">
+            → الأقسام
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-2">{{ category.name }}</h1>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in products %}
+        <a href="{% url 'products:product_detail' product.pk %}"
+           class="bg-white rounded-xl shadow hover:shadow-md transition overflow-hidden">
+            {% if product.image %}
+<div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+    <span class="text-gray-300 text-5xl">📦</span>
+</div>
+            {% else %}
+            <div class="w-full h-44 bg-gray-50 flex items-center justify-center">
+                <span class="text-gray-300 text-4xl">+</span>
+            </div>
+            {% endif %}
+            <div class="p-4">
+                <h2 class="font-semibold text-gray-800 text-sm">{{ product.name }}</h2>
+                {% if product.manufacturer %}
+                <p class="text-xs text-gray-400 mt-1">{{ product.manufacturer }}</p>
+                {% endif %}
+                {% with unit=product.units.first %}
+                {% if unit %}
+                <p class="text-blue-600 font-bold mt-2 text-sm">{{ unit.unit_price }} جنيه / {{ unit.name }}</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </a>
+        {% empty %}
+        <p class="text-gray-400">لا يوجد منتجات في هذا القسم</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
