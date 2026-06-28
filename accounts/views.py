@@ -36,7 +36,7 @@ def login_view(request):
                     messages.error(request, 'تم رفض طلب تسجيلك.')
                 else:
                     login(request, user)
-                    return redirect('accounts:dashboard')
+                    return redirect('products:category_list')
             else:
                 messages.error(request, 'اسم المستخدم أو كلمة المرور غلط.')
     else:
@@ -46,8 +46,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('accounts:login')
-
+    return redirect('home')
 
 def pending_view(request):
     return render(request, 'accounts/pending.html')
@@ -56,11 +55,6 @@ def pending_view(request):
 def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-
-    low_stock = Inventory.objects.filter(
-        quantity__lte=django_models.F('min_quantity')
-    ).select_related('product_unit__product')[:5]
-
-    return render(request, 'accounts/dashboard.html', {
-        'low_stock': low_stock,
-    })
+    if request.user.role in ['ADMIN', 'WAREHOUSE']:
+        return redirect('staff:dashboard')
+    return render(request, 'accounts/dashboard.html', {})

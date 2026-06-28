@@ -7,20 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    {% if messages %}
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 space-y-2">
-        {% for message in messages %}
-        <div class="px-6 py-3 rounded-lg shadow text-white text-sm
-            {% if message.tags == 'success' %}bg-green-500
-            {% elif message.tags == 'error' %}bg-red-500
-            {% elif message.tags == 'warning' %}bg-yellow-500
-            {% else %}bg-blue-500{% endif %}">
-            {{ message }}
+    {% if request.user.is_authenticated %}
+    <nav class="bg-white shadow px-6 py-3 flex justify-between items-center">
+        <span class="font-bold text-blue-700">Biozone</span>
+        <div class="flex items-center gap-4 text-sm">
+            <span class="text-gray-500">{{ request.user.username }}</span>
+            <a href="{% url 'accounts:logout' %}"
+               class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition">
+                خروج
+            </a>
         </div>
-        {% endfor %}
-    </div>
+    </nav>
     {% endif %}
-
+    ...
     {% block content %}{% endblock %}
 </body>
 </html>

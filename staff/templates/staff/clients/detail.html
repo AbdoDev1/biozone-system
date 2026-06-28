@@ -1,0 +1,58 @@
+{% extends 'staff/base.html' %}
+{% block title %}{{ profile.business_name }} — Biozone ERP{% endblock %}
+{% block content %}
+
+<div class="mb-4">
+    <a href="{% url 'staff:clients' %}" class="text-blue-600 hover:underline text-sm">→ العملاء</a>
+</div>
+
+<div class="bg-white rounded-2xl shadow p-8 max-w-2xl">
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">{{ profile.business_name }}</h1>
+            <p class="text-gray-500 text-sm mt-1">{{ profile.get_business_type_display }}</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold
+            {% if profile.user.status == 'ACTIVE' %}bg-green-100 text-green-700
+            {% elif profile.user.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+            {% else %}bg-red-100 text-red-700{% endif %}">
+            {{ profile.user.get_status_display }}
+        </span>
+    </div>
+
+    <div class="space-y-4 text-sm">
+        <div class="flex gap-4">
+            <span class="text-gray-500 w-32">اسم المستخدم</span>
+            <span class="font-medium">{{ profile.user.username }}</span>
+        </div>
+        <div class="flex gap-4">
+            <span class="text-gray-500 w-32">التليفون</span>
+            <span class="font-medium">{{ profile.phone }}</span>
+        </div>
+        <div class="flex gap-4">
+            <span class="text-gray-500 w-32">العنوان</span>
+            <span class="font-medium">{{ profile.address }}</span>
+        </div>
+        <div class="flex gap-4">
+            <span class="text-gray-500 w-32">تاريخ التسجيل</span>
+            <span class="font-medium">{{ profile.user.date_joined|date:"Y-m-d" }}</span>
+        </div>
+        {% if profile.verified_at %}
+        <div class="flex gap-4">
+            <span class="text-gray-500 w-32">تاريخ التفعيل</span>
+            <span class="font-medium">{{ profile.verified_at|date:"Y-m-d" }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if profile.user.status == 'PENDING' %}
+    <div class="flex gap-3 mt-8">
+        <a href="{% url 'staff:client_approve' profile.pk %}"
+           class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition">موافقة</a>
+        <a href="{% url 'staff:client_reject' profile.pk %}"
+           class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-lg transition">رفض</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

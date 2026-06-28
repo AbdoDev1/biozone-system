@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}تسجيل الدخول — Biozone{% endblock %}
-
 {% block content %}
 <div class="min-h-screen flex items-center justify-center">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
@@ -9,6 +7,11 @@
             <h1 class="text-3xl font-bold text-blue-700">Biozone</h1>
             <p class="text-gray-500 mt-1">نظام إدارة المستلزمات الطبية</p>
         </div>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="bg-red-100 text-red-700 px-4 py-2 rounded-lg mb-4 text-sm">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
         <form method="post" class="space-y-4">
             {% csrf_token %}
             {% for field in form %}
@@ -32,7 +35,9 @@
             مش عندك حساب؟
             <a href="{% url 'accounts:register' %}" class="text-blue-600 hover:underline">سجل هنا</a>
         </p>
+        <p class="text-center text-sm text-gray-500 mt-2">
+            <a href="{% url 'home' %}" class="text-gray-400 hover:underline text-xs">← الرئيسية</a>
+        </p>
     </div>
 </div>
 {% endblock %}
-
