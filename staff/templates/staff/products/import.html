@@ -1,0 +1,99 @@
+{% extends 'staff/base.html' %}
+{% block title %}استيراد منتجات — Biozone{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">استيراد منتجات من Excel</h1>
+    <a href="{% url 'staff:product_list' %}"
+       class="text-sm text-gray-500 hover:text-blue-600">← قائمة المنتجات</a>
+</div>
+
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg text-sm
+        {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+        {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+        {% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- تحميل القالب -->
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+    <div>
+        <p class="font-semibold text-blue-800 text-sm">قالب Excel الجاهز</p>
+        <p class="text-blue-600 text-xs mt-1">حمّل القالب، املاه، وارفعه</p>
+    </div>
+    <a href="{% url 'staff:download_template' %}"
+       class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition">
+        تحميل القالب
+    </a>
+</div>
+
+<!-- الأعمدة -->
+<div class="bg-white rounded-xl shadow p-4 mb-6">
+    <h2 class="font-bold text-gray-700 mb-3 text-sm">الأعمدة في الملف</h2>
+    <div class="grid grid-cols-2 gap-2 text-xs">
+        {% for col, label, required in col_info|default:"" %}
+        {% endfor %}
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">مطلوب</span>
+            <span class="text-gray-600">name_ar — اسم المنتج بالعربي</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">مطلوب</span>
+            <span class="text-gray-600">category_slug — كود القسم</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">مطلوب</span>
+            <span class="text-gray-600">unit_name — اسم الوحدة</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">مطلوب</span>
+            <span class="text-gray-600">unit_price — سعر القطعة</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">مطلوب</span>
+            <span class="text-gray-600">initial_stock — الكمية الابتدائية</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded">اختياري</span>
+            <span class="text-gray-600">name_en — الاسم بالإنجليزي</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded">اختياري</span>
+            <span class="text-gray-600">manufacturer — الشركة المصنعة</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded">اختياري</span>
+            <span class="text-gray-600">wholesale_price — سعر الجملة</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded">اختياري</span>
+            <span class="text-gray-600">wholesale_min_qty — أقل كمية جملة</span>
+        </div>
+    </div>
+</div>
+
+<!-- فورم الرفع -->
+<div class="bg-white rounded-xl shadow p-6">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label class="block mb-4">
+            <span class="text-sm font-medium text-gray-700 mb-2 block">اختار ملف Excel</span>
+            <input type="file" name="excel_file" accept=".xlsx"
+                   class="block w-full text-sm text-gray-500 border border-gray-200 rounded-lg p-2
+                          file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                          file:bg-blue-50 file:text-blue-700 file:font-medium hover:file:bg-blue-100">
+        </label>
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition">
+            رفع واستيراد
+        </button>
+    </form>
+</div>
+
+{% endblock %}

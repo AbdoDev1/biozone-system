@@ -8,7 +8,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen" x-data="{ sidebarOpen: true }">
-
 <!-- Topbar -->
 <header class="fixed top-0 right-0 left-0 h-14 bg-white shadow z-30 flex items-center px-4 gap-4">
     <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-800">
@@ -19,11 +18,10 @@
     <span class="font-bold text-blue-700 text-lg">Biozone ERP</span>
     <div class="mr-auto flex items-center gap-4">
         <span class="text-sm text-gray-500">{{ request.user.username }}</span>
-        <a href="{% url 'accounts:logout' %}"
+        <a href="{% url 'staff:logout' %}"
            class="text-sm text-red-500 hover:underline">خروج</a>
     </div>
 </header>
-
 <!-- Sidebar -->
 <aside class="fixed top-14 right-0 h-full bg-white shadow-md z-20 transition-all duration-300"
        :class="sidebarOpen ? 'w-56' : 'w-0 overflow-hidden'">
@@ -40,7 +38,7 @@
            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
             📦 المخزون
         </a>
-        <a href="/admin/products/product/"
+        <a href="{% url 'staff:product_list' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
             🛍️ المنتجات
         </a>
@@ -51,11 +49,9 @@
         </a>
     </nav>
 </aside>
-
 <!-- Main Content -->
 <main class="pt-14 transition-all duration-300"
       :class="sidebarOpen ? 'mr-56' : 'mr-0'">
-    
     {% if messages %}
     <div class="fixed top-16 left-1/2 -translate-x-1/2 z-50 space-y-2">
         {% for message in messages %}
@@ -69,12 +65,9 @@
         {% endfor %}
     </div>
     {% endif %}
-
     <div class="p-6">
         {% block content %}{% endblock %}
     </div>
 </main>
-
 </body>
 </html>
-

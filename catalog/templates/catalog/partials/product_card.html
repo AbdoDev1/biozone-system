@@ -1,11 +1,11 @@
 <a href="{% url 'catalog:product_detail' product.pk %}"
    class="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden group block">
-  
-  <!-- صورة المنتج -->
-  <div class="aspect-square bg-gray-100 overflow-hidden">
+
+  <!-- صورة المنتج بحجم ثابت -->
+  <div class="w-full h-48 bg-gray-100 overflow-hidden">
     {% if product.image %}
       <img src="{{ product.image.url }}" alt="{{ product.name_ar }}"
-           class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+           class="w-full h-full object-contain p-2 group-hover:scale-105 transition duration-300">
     {% else %}
       <div class="w-full h-full flex items-center justify-center text-gray-300">
         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,28 +17,23 @@
   </div>
 
   <!-- بيانات المنتج -->
-  <div class="p-3">
-    <p class="text-xs text-blue-600 mb-1">{{ product.category.name }}</p>
-    <h3 class="font-semibold text-gray-800 text-sm leading-snug mb-1 line-clamp-2">
+  <div class="p-3 flex flex-col gap-1">
+    <p class="text-xs text-blue-600">{{ product.category.name }}</p>
+    <h3 class="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
       {{ product.name_ar }}
     </h3>
-    {% if product.name_en %}
-      <p class="text-xs text-gray-400 mb-2">{{ product.name_en }}</p>
-    {% endif %}
     {% if product.manufacturer %}
-      <p class="text-xs text-gray-500 mb-2">{{ product.manufacturer }}</p>
+      <p class="text-xs text-gray-400">{{ product.manufacturer }}</p>
     {% endif %}
 
-    <!-- أقل سعر متاح -->
     {% with unit=product.units.first %}
       {% if unit %}
-        <p class="text-blue-700 font-bold text-sm">
+        <p class="text-blue-700 font-bold text-sm mt-1">
           يبدأ من {{ unit.unit_price }} ج.م
         </p>
       {% endif %}
     {% endwith %}
 
-    <!-- زر -->
     {% if request.user.is_authenticated and request.user.role == 'CLIENT' and request.user.status == 'ACTIVE' %}
       <button class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg transition">
         أضف للسلة
