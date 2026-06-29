@@ -1,10 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.db import models as django_models
 from .forms import RegisterForm, LoginForm
 from .models import User
-from inventory.models import Inventory
 
 
 def register_view(request):
@@ -20,6 +18,12 @@ def register_view(request):
 
 
 def login_view(request):
+    # لو موظف حاول يدخل من هنا نرفضه
+    if request.user.is_authenticated:
+        if request.user.role in ['ADMIN', 'WAREHOUSE']:
+            return redirect('staff:dashboard')
+        return redirect('catalog:home')
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -29,6 +33,11 @@ def login_view(request):
                 password=form.cleaned_data['password'],
             )
             if user:
+                # موظف حاول يدخل من بوابة العملاء
+                if user.role in ['ADMIN', 'WAREHOUSE']:
+                    messages.error(request, 'يرجى الدخول من بوابة الموظفين.')
+                    return render(request, 'accounts/login.html', {'form': form})
+
                 if user.status == User.Status.PENDING:
                     messages.warning(request, 'حسابك في انتظار موافقة الإدارة.')
                     return redirect('accounts:pending')
@@ -36,7 +45,7 @@ def login_view(request):
                     messages.error(request, 'تم رفض طلب تسجيلك.')
                 else:
                     login(request, user)
-                    return redirect('products:category_list')
+                    return redirect('catalog:home')
             else:
                 messages.error(request, 'اسم المستخدم أو كلمة المرور غلط.')
     else:
@@ -47,6 +56,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
 
 def pending_view(request):
     return render(request, 'accounts/pending.html')

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ product.name_ar }} — Biozone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-50" dir="rtl">
+
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center">
+    <a href="{% url 'catalog:home' %}" class="text-blue-700 font-bold text-xl">Biozone</a>
+    <div class="flex gap-3">
+      {% if not request.user.is_authenticated %}
+        <a href="{% url 'accounts:login' %}" class="text-sm border border-blue-600 text-blue-600 px-4 py-2 rounded-lg">دخول</a>
+        <a href="{% url 'accounts:register' %}" class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg">سجل الآن</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-400 mb-6">
+      <a href="{% url 'catalog:home' %}" class="hover:text-blue-600">الكتالوج</a>
+      <span class="mx-2">/</span>
+      <a href="{% url 'catalog:home' %}?category={{ product.category.slug }}" class="hover:text-blue-600">{{ product.category.name }}</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-600">{{ product.name_ar }}</span>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm p-6 flex gap-8 flex-col md:flex-row">
+      
+      <!-- صورة -->
+      <div class="w-full md:w-72 shrink-0">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name_ar }}"
+               class="w-full rounded-xl object-cover aspect-square">
+        {% else %}
+          <div class="w-full aspect-square bg-gray-100 rounded-xl flex items-center justify-center text-gray-300">
+            <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+            </svg>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- بيانات -->
+      <div class="flex-1">
+        <p class="text-blue-600 text-sm mb-1">{{ product.category.name }}</p>
+        <h1 class="text-2xl font-bold text-gray-800 mb-1">{{ product.name_ar }}</h1>
+        {% if product.name_en %}
+          <p class="text-gray-400 text-sm mb-2">{{ product.name_en }}</p>
+        {% endif %}
+        {% if product.manufacturer %}
+          <p class="text-sm text-gray-500 mb-4">الشركة المصنعة: <span class="font-medium">{{ product.manufacturer }}</span></p>
+        {% endif %}
+        {% if product.description %}
+          <p class="text-gray-600 text-sm leading-relaxed mb-6">{{ product.description }}</p>
+        {% endif %}
+
+        <!-- الوحدات والأسعار -->
+        <div class="space-y-3">
+          <h2 class="font-bold text-gray-700">الوحدات المتاحة</h2>
+          {% for unit in units %}
+          <div x-data="{ qty: 1 }"
+               class="border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div>
+              <p class="font-semibold text-gray-800">{{ unit.name }}</p>
+              <p class="text-xs text-gray-400">{{ unit.get_size_display }}</p>
+              {% if unit.wholesale_min_qty and unit.wholesale_price %}
+                <p class="text-xs text-green-600 mt-1">
+                  سعر الجملة: {{ unit.wholesale_price }} ج.م عند {{ unit.wholesale_min_qty }}+
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- السعر + الكمية -->
+            <div class="text-left flex items-center gap-4">
+              <p class="text-blue-700 font-bold text-lg" x-text="'{{ unit.unit_price }} ج.م'"></p>
+
+              {% if request.user.is_authenticated and request.user.role == 'CLIENT' and request.user.status == 'ACTIVE' %}
+              <!-- زر + / - -->
+              <div class="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1">
+                <button @click="if(qty>1) qty--" class="text-gray-500 hover:text-red-500 font-bold px-1">−</button>
+                <span x-text="qty" class="text-gray-800 font-semibold w-6 text-center"></span>
+                <button @click="qty++" class="text-gray-500 hover:text-green-500 font-bold px-1">+</button>
+              </div>
+              <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition">
+                أضف للسلة
+              </button>
+              {% else %}
+              <a href="{% url 'accounts:register' %}"
+                 class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition">
+                سجل للطلب
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

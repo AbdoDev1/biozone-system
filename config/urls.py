@@ -8,8 +8,8 @@ def home(request):
     if request.user.is_authenticated:
         if request.user.role in ['ADMIN', 'WAREHOUSE']:
             return redirect('staff:dashboard')
-        return redirect('accounts:dashboard')
-    return render(request, 'landing.html')
+        return redirect('catalog:home')  # عميل يروح للكتالوج
+    return redirect('catalog:home')  # زائر كمان يروح للكتالوج
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,4 +19,5 @@ urlpatterns = [
     path('products/', include('products.urls')),
     path('inventory/', include('inventory.urls')),
     path('staff/', include('staff.urls')),
+    path('catalog/', include('catalog.urls')),  # أضف ده
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
