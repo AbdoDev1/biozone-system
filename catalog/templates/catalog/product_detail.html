@@ -16,6 +16,7 @@
       {% if request.user.is_authenticated %}
         <span class="text-sm text-gray-500">{{ request.user.username }}</span>
         {% if request.user.role == 'CLIENT' %}
+          <a href="{% url 'orders:order_list' %}" class="text-sm text-gray-600 hover:text-blue-700">طلباتي</a>
           <a href="{% url 'orders:cart' %}"
              class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg relative">
             🛒 سلتي

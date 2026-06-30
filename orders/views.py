@@ -7,7 +7,7 @@ from django.db import transaction
 from products.models import ProductUnit
 from inventory.models import Inventory, StockMovement
 from .cart import Cart
-from .models import Order, OrderItem
+from .models import Order, OrderItem, SiteConfig
 
 
 def cart_add(request, unit_id):
@@ -64,9 +64,15 @@ def cart_view(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
     cart = Cart(request)
+    config = SiteConfig.get_solo()
+    total = cart.get_total()
+    remaining = config.min_order_amount - total if config.min_order_amount else 0
     return render(request, 'orders/cart.html', {
         'cart_items': cart.get_items(),
-        'total': cart.get_total(),
+        'total': total,
+        'min_order_amount': config.min_order_amount,
+        'remaining_to_min': remaining if remaining > 0 else 0,
+        'below_min': remaining > 0,
     })
 
 
@@ -103,6 +109,17 @@ def checkout(request):
 
     if not items:
         messages.warning(request, 'سلتك فاضية.')
+        return redirect('orders:cart')
+
+    config = SiteConfig.get_solo()
+    total = cart.get_total()
+
+    if config.min_order_amount and total < config.min_order_amount:
+        messages.error(
+            request,
+            f'الحد الأدنى لإجمالي الطلب هو {config.min_order_amount} ج.م. '
+            f'إجمالي سلتك الحالي {total} ج.م، يلزم إضافة {config.min_order_amount - total} ج.م إضافية.'
+        )
         return redirect('orders:cart')
 
     if request.method == 'POST':
