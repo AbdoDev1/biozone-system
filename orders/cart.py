@@ -98,8 +98,8 @@ class Cart:
             )
             force_wholesale = self.cart[uid].get("wholesale", False)
 
-            if force_wholesale and unit.wholesale_price:
-                # العميل طلب حساب الجملة بنفسه، حتى لو الكمية أقل من حد الجملة
+            if force_wholesale and unit.wholesale_price and unit.wholesale_min_qty and quantity >= unit.wholesale_min_qty:
+                # العميل اختار حساب الجملة، والكمية فعلاً وصلت للحد الأدنى المطلوب
                 subtotal = unit.wholesale_price * quantity
                 is_wholesale = True
             else:

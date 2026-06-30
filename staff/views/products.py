@@ -161,6 +161,12 @@ def import_products(request):
                     if not name_ar or not category_slug or not unit_name or not unit_price:
                         error_rows.append(f'سطر {row_num}: بيانات ناقصة')
                         continue
+                    if wholesale_price is not None and wholesale_price >= unit_price:
+                        error_rows.append(
+                            f'سطر {row_num}: سعر الجملة ({wholesale_price}) لازم يكون '
+                            f'أقل من سعر القطعة ({unit_price}) — تم تجاهل الصف.'
+                        )
+                        continue
                     try:
                         category = Category.objects.get(slug=category_slug)
                     except Category.DoesNotExist:

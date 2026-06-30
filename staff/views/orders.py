@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 
 from orders.models import Order, OrderItem
@@ -79,16 +80,22 @@ def order_detail(request, pk):
 
         elif action == 'reject':
             reason = request.POST.get('reason', '')
-            order.reject(actor=request.user, reason=reason)
-            messages.success(request, f'تم رفض الطلب #{order.pk} وفك الحجز.')
+            try:
+                order.reject(actor=request.user, reason=reason)
+                messages.success(request, f'تم رفض الطلب #{order.pk} وفك الحجز.')
+            except ValueError as e:
+                messages.error(request, str(e))
             return redirect('staff:order_detail', pk=order.pk)
 
         elif action == 'deliver':
             if order.status != Order.Status.CONFIRMED:
                 messages.error(request, 'لازم الطلب يكون مؤكد الأول قبل التسليم.')
             else:
-                order.mark_delivered(actor=request.user)
-                messages.success(request, f'تم تسليم الطلب #{order.pk}.')
+                try:
+                    order.mark_delivered(actor=request.user)
+                    messages.success(request, f'تم تسليم الطلب #{order.pk}.')
+                except ValidationError as e:
+                    messages.error(request, f'تعذّر تسليم الطلب: {"، ".join(e.messages)}')
             return redirect('staff:order_detail', pk=order.pk)
 
     return render(request, 'staff/orders/detail.html', {'order': order})

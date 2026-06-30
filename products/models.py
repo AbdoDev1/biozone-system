@@ -92,11 +92,24 @@ class ProductUnit(models.Model):
     def __str__(self):
         return f"{self.product.display_name} — {self.name}"
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.wholesale_price is not None and self.unit_price is not None:
+            if self.wholesale_price >= self.unit_price:
+                raise ValidationError({
+                    'wholesale_price': (
+                        f'سعر الجملة ({self.wholesale_price} ج.م) لازم يكون أقل من '
+                        f'سعر القطعة ({self.unit_price} ج.م)، وإلا العميل اللي يشتري '
+                        f'بالجملة هيدفع أكتر من اللي يشتري بالقطاعي.'
+                    )
+                })
+
     def get_price(self, qty):
         if self.wholesale_min_qty and qty >= self.wholesale_min_qty and self.wholesale_price:
             if self.wholesale_mode == self.WholesaleMode.FULL:
                 return self.wholesale_price * qty
             else:
-                return (self.wholesale_price * self.wholesale_min_qty) + \
-                       (self.unit_price * (qty - self.wholesale_min_qty))
+                # تدريجي: أول wholesale_min_qty بسعر القطاعي، وأي زيادة عن الحد بسعر الجملة
+                return (self.unit_price * self.wholesale_min_qty) + \
+                       (self.wholesale_price * (qty - self.wholesale_min_qty))
         return self.unit_price * qty

@@ -46,7 +46,8 @@ class Inventory(models.Model):
 class StockMovement(models.Model):
     class MovementType(models.TextChoices):
         IN = 'IN', 'وارد'
-        OUT = 'OUT', 'صادر'
+        OUT = 'OUT', 'صادر (مباشر)'
+        OUT_RESERVED = 'OUT_RESERVED', 'صادر (من محجوز عند التسليم)'
         RESERVE = 'RESERVE', 'حجز'
         RELEASE = 'RELEASE', 'إلغاء حجز'
 
@@ -55,7 +56,7 @@ class StockMovement(models.Model):
         on_delete=models.CASCADE,
         related_name='movements',
     )
-    movement_type = models.CharField(max_length=10, choices=MovementType.choices)
+    movement_type = models.CharField(max_length=13, choices=MovementType.choices)
     quantity = models.PositiveIntegerField()
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -80,7 +81,13 @@ class StockMovement(models.Model):
             raise ValidationError('الكمية يجب أن تكون أكبر من صفر.')
         if self.inventory_id:
             if self.movement_type == self.MovementType.OUT and self.quantity > self.inventory.available:
-                raise ValidationError('الكمية المطلوبة أكبر من الكمية المتاحة في المخزون.')
+                raise ValidationError(
+                    'الكمية المطلوبة أكبر من الكمية المتاحة (غير المحجوزة) في المخزون.'
+                )
+            if self.movement_type == self.MovementType.OUT_RESERVED and self.quantity > self.inventory.reserved:
+                raise ValidationError(
+                    'الكمية المطلوب تسليمها أكبر من الكمية المحجوزة فعليًا لهذا الطلب.'
+                )
             if self.movement_type == self.MovementType.RELEASE and self.quantity > self.inventory.reserved:
                 raise ValidationError('لا يمكن إلغاء حجز أكبر من الكمية المحجوزة فعليًا.')
 
@@ -93,7 +100,7 @@ class StockMovement(models.Model):
         inv_qs = Inventory.objects.filter(pk=self.inventory_id)
         if self.movement_type == self.MovementType.IN:
             inv_qs.update(quantity=F('quantity') + self.quantity)
-        elif self.movement_type == self.MovementType.OUT:
+        elif self.movement_type in (self.MovementType.OUT, self.MovementType.OUT_RESERVED):
             inv_qs.update(quantity=F('quantity') - self.quantity)
         elif self.movement_type == self.MovementType.RESERVE:
             inv_qs.update(reserved=F('reserved') + self.quantity)

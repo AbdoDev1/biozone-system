@@ -88,6 +88,13 @@
                 <p class="text-xs text-green-600 mt-1">
                   سعر الجملة: {{ unit.wholesale_price }} ج.م عند {{ unit.wholesale_min_qty }}+
                 </p>
+                {% with saving=unit.unit_price|sub:unit.wholesale_price %}
+                  {% if saving > 0 %}
+                    <p class="text-xs text-amber-600 mt-1">
+                      💡 وفّر {{ saving }} ج.م لكل وحدة لو طلبت {{ unit.wholesale_min_qty }} وحدة أو أكتر
+                    </p>
+                  {% endif %}
+                {% endwith %}
               {% endif %}
             </div>
 

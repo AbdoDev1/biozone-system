@@ -112,8 +112,19 @@ class Order(models.Model):
     def reject(self, actor=None, reason=''):
         """رفض الطلب (من المخزن أو من العميل) — بيفك كل الحجز المتبقي."""
         from inventory.models import Inventory, StockMovement
-        for item in self.items.select_related('product_unit__inventory'):
-            inv = getattr(item.product_unit, 'inventory', None)
+        if self.status == self.Status.DELIVERED:
+            raise ValueError('الطلب ده اتسلّم بالفعل، مينفعش يترفض.')
+        if self.status == self.Status.REJECTED:
+            raise ValueError('الطلب ده مرفوض بالفعل.')
+
+        item_unit_ids = [item.product_unit_id for item in self.items.all()]
+        locked_inventories = {
+            inv.product_unit_id: inv
+            for inv in Inventory.objects.select_for_update().filter(product_unit_id__in=item_unit_ids)
+        }
+
+        for item in self.items.all():
+            inv = locked_inventories.get(item.product_unit_id)
             if inv and inv.reserved > 0:
                 release_qty = min(item.quantity, inv.reserved)
                 if release_qty > 0:
@@ -124,6 +135,7 @@ class Order(models.Model):
                         note=f'فك حجز بسبب رفض الطلب #{self.pk}',
                         created_by=actor,
                     )
+                    inv.refresh_from_db()
         self._actor = actor
         self.status = self.Status.REJECTED
         if reason:
@@ -136,23 +148,34 @@ class Order(models.Model):
     def mark_delivered(self, actor=None):
         """تسليم الطلب — بيحوّل الكمية المحجوزة لصادر فعلي من المخزون."""
         from inventory.models import Inventory, StockMovement
-        for item in self.items.select_related('product_unit__inventory'):
-            inv = getattr(item.product_unit, 'inventory', None)
+        item_unit_ids = [item.product_unit_id for item in self.items.all()]
+        locked_inventories = {
+            inv.product_unit_id: inv
+            for inv in Inventory.objects.select_for_update().filter(product_unit_id__in=item_unit_ids)
+        }
+
+        for item in self.items.all():
+            inv = locked_inventories.get(item.product_unit_id)
             if inv:
-                StockMovement.objects.create(
+                out_movement = StockMovement(
                     inventory=inv,
-                    movement_type=StockMovement.MovementType.OUT,
+                    movement_type=StockMovement.MovementType.OUT_RESERVED,
                     quantity=item.quantity,
                     note=f'تسليم طلب #{self.pk}',
                     created_by=actor,
                 )
-                StockMovement.objects.create(
+                out_movement.full_clean()
+                out_movement.save()
+
+                release_movement = StockMovement(
                     inventory=inv,
                     movement_type=StockMovement.MovementType.RELEASE,
                     quantity=item.quantity,
                     note=f'فك حجز بعد تسليم طلب #{self.pk}',
                     created_by=actor,
                 )
+                release_movement.full_clean()
+                release_movement.save()
         self._actor = actor
         self.status = self.Status.DELIVERED
         self.save()
@@ -168,7 +191,7 @@ class Order(models.Model):
         diff = new_quantity - old_quantity
 
         if diff != 0:
-            inv = item.product_unit.inventory
+            inv = Inventory.objects.select_for_update().get(product_unit_id=item.product_unit_id)
             if diff < 0:
                 StockMovement.objects.create(
                     inventory=inv,

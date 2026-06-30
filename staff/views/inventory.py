@@ -39,7 +39,13 @@ def add_movement(request, pk):
         movement_type = request.POST.get('movement_type')
         note = request.POST.get('note', '')
 
-        if movement_type not in StockMovement.MovementType.values:
+        manual_allowed_types = {
+            StockMovement.MovementType.IN,
+            StockMovement.MovementType.OUT,
+            StockMovement.MovementType.RESERVE,
+            StockMovement.MovementType.RELEASE,
+        }
+        if movement_type not in manual_allowed_types:
             messages.error(request, 'نوع الحركة غير صحيح')
             return redirect('staff:inventory_detail', pk=pk)
 

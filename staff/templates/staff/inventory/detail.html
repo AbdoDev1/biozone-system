@@ -102,6 +102,7 @@
                     <span class="px-2 py-1 rounded-full text-xs
                         {% if movement.movement_type == 'IN' %}bg-green-100 text-green-700
                         {% elif movement.movement_type == 'OUT' %}bg-red-100 text-red-700
+                        {% elif movement.movement_type == 'OUT_RESERVED' %}bg-rose-100 text-rose-700
                         {% elif movement.movement_type == 'RESERVE' %}bg-yellow-100 text-yellow-700
                         {% else %}bg-gray-100 text-gray-700{% endif %}">
                         {{ movement.get_movement_type_display }}
