@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>السلة — Biozone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50" dir="rtl">
+
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+    <a href="{% url 'catalog:home' %}" class="font-bold text-blue-700 text-xl">Biozone</a>
+    <div class="flex items-center gap-3">
+      <span class="text-sm text-gray-500">{{ request.user.username }}</span>
+      <a href="{% url 'accounts:logout' %}" class="text-sm text-red-500 hover:underline">خروج</a>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">سلة المشتريات</h1>
+
+    {% if cart_items %}
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 border-b">
+          <tr>
+            <th class="px-4 py-3 text-right">المنتج</th>
+            <th class="px-4 py-3 text-right">السعر</th>
+            <th class="px-4 py-3 text-right">الكمية</th>
+            <th class="px-4 py-3 text-right">الإجمالي</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for item in cart_items %}
+          <tr>
+            <td class="px-4 py-3">
+              <p class="font-medium text-gray-800">{{ item.unit.product.name_ar }}</p>
+              <p class="text-xs text-gray-400">{{ item.unit.name }}</p>
+              {% if item.unit.wholesale_price %}
+                <p class="text-[11px] text-gray-400 mt-0.5">
+                  سعر الجملة {{ item.unit.wholesale_price }} ج.م
+                  {% if item.unit.wholesale_min_qty %}
+                    (تلقائي من {{ item.unit.wholesale_min_qty }} وحدة)
+                  {% endif %}
+                </p>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-blue-700 font-semibold">
+              {{ item.unit_price }} ج.م
+              {% if item.is_wholesale %}
+                <span class="inline-block bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full mr-1">جملة</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <form method="POST" action="{% url 'orders:cart_update' item.unit.pk %}" class="flex items-center gap-2">
+                {% csrf_token %}
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                       class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-center text-sm outline-none focus:border-blue-400">
+                {% if item.unit.wholesale_price %}
+                  <label class="flex items-center gap-1 text-xs text-green-700 cursor-pointer whitespace-nowrap">
+                    <input type="checkbox" name="wholesale" {% if item.wholesale_forced %}checked{% endif %}>
+                    جملة
+                  </label>
+                {% endif %}
+                <button type="submit" class="text-xs text-blue-600 hover:underline">تحديث</button>
+              </form>
+            </td>
+            <td class="px-4 py-3 font-bold text-gray-800">{{ item.subtotal }} ج.م</td>
+            <td class="px-4 py-3">
+              <form method="POST" action="{% url 'orders:cart_remove' item.unit.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-red-500 hover:text-red-700 text-xs">حذف</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- الإجمالي -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center">
+      <div>
+        <p class="text-gray-500 text-sm">الإجمالي</p>
+        <p class="text-3xl font-bold text-blue-700">{{ total }} ج.م</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'catalog:home' %}"
+           class="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl hover:bg-gray-50 transition text-sm">
+          متابعة التسوق
+        </a>
+        <a href="{% url 'orders:checkout' %}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition text-sm font-semibold">
+          إتمام الطلب
+        </a>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-20 text-gray-400">
+      <p class="text-5xl mb-4">🛒</p>
+      <p class="text-xl mb-4">سلتك فاضية</p>
+      <a href="{% url 'catalog:home' %}" class="text-blue-600 hover:underline text-sm">تسوق دلوقتي</a>
+    </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

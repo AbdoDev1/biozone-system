@@ -45,7 +45,7 @@ def product_add(request):
             initial_stock = unit_form.cleaned_data.get('initial_stock') or 0
             inventory = Inventory.objects.create(
                 product_unit=unit,
-                quantity=initial_stock,
+                quantity=0,
                 reserved=0,
                 min_quantity=0,
             )
@@ -196,8 +196,6 @@ def import_products(request):
                         defaults={'quantity': 0, 'reserved': 0, 'min_quantity': 0}
                     )
                     if initial_stock > 0:
-                        inventory.quantity += initial_stock
-                        inventory.save()
                         StockMovement.objects.create(
                             inventory=inventory,
                             movement_type='IN',

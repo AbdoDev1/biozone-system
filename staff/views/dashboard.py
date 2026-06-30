@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from inventory.models import Inventory
 from clients.models import ClientProfile
 
@@ -38,12 +39,14 @@ def dashboard(request):
         return redirect('catalog:home')
 
     total_products = Inventory.objects.count()
-    low_stock = Inventory.objects.filter(quantity__lte=django_models_F('min_quantity')).count() \
-        if False else Inventory.objects.all()
+    low_stock = Inventory.objects.select_related(
+        'product_unit__product'
+    ).filter(quantity__lte=models.F('reserved') + models.F('min_quantity'))
     pending_clients = ClientProfile.objects.filter(user__status='PENDING').count()
 
     context = {
         'total_products': total_products,
+        'low_stock': low_stock,
         'pending_clients': pending_clients,
     }
     return render(request, 'staff/dashboard.html', context)

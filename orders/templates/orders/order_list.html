@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>طلباتي — Biozone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50" dir="rtl">
+
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center">
+    <a href="{% url 'catalog:home' %}" class="font-bold text-blue-700 text-xl">Biozone</a>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">طلباتي</h1>
+
+    {% if orders %}
+    <div class="space-y-4">
+      {% for order in orders %}
+      <a href="{% url 'orders:order_detail' order.pk %}"
+         class="bg-white rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition block">
+        <div>
+          <p class="font-bold text-gray-800">طلب #{{ order.pk }}</p>
+          <p class="text-xs text-gray-400 mt-1">{{ order.created_at|date:"d/m/Y" }}</p>
+        </div>
+        <div class="text-left flex items-center gap-4">
+          <span class="font-bold text-blue-700">{{ order.total }} ج.م</span>
+          <span class="px-3 py-1 rounded-full text-xs font-medium
+            {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+            {% elif order.status == 'CONFIRMED' %}bg-green-100 text-green-700
+            {% elif order.status == 'REJECTED' %}bg-red-100 text-red-600
+            {% else %}bg-blue-100 text-blue-700{% endif %}">
+            {{ order.get_status_display }}
+          </span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 text-gray-400">
+      <p class="text-5xl mb-4">📋</p>
+      <p class="text-xl">مفيش طلبات لحد دلوقتي</p>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>

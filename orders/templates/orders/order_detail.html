@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>طلب #{{ order.pk }} — Biozone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50" dir="rtl">
+
+  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center">
+    <a href="{% url 'catalog:home' %}" class="font-bold text-blue-700 text-xl">Biozone</a>
+  </nav>
+
+  <div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">طلب #{{ order.pk }}</h1>
+          <p class="text-gray-400 text-sm mt-1">{{ order.created_at|date:"d/m/Y — H:i" }}</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-sm font-medium
+          {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+          {% elif order.status == 'CONFIRMED' %}bg-green-100 text-green-700
+          {% elif order.status == 'REJECTED' %}bg-red-100 text-red-600
+          {% else %}bg-blue-100 text-blue-700{% endif %}">
+          {{ order.get_status_display }}
+        </span>
+      </div>
+
+      <div class="space-y-3 mb-6">
+        {% for item in order.items.all %}
+        <div class="flex justify-between text-sm border-b pb-3">
+          <div>
+            <p class="font-medium text-gray-800">{{ item.product_unit.product.name_ar }}</p>
+            <p class="text-gray-400 text-xs">{{ item.product_unit.name }} × {{ item.quantity }}</p>
+          </div>
+          <span class="font-semibold text-gray-800">{{ item.subtotal }} ج.م</span>
+        </div>
+        {% endfor %}
+        <div class="flex justify-between font-bold text-lg pt-2">
+          <span>الإجمالي</span>
+          <span class="text-blue-700">{{ order.total }} ج.م</span>
+        </div>
+      </div>
+
+      {% if order.notes %}
+      <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
+        <p class="font-medium mb-1">ملاحظات:</p>
+        <p>{{ order.notes }}</p>
+      </div>
+      {% endif %}
+
+      <div class="mt-6 flex gap-3">
+        <a href="{% url 'orders:order_list' %}"
+           class="text-sm text-blue-600 hover:underline">← طلباتي</a>
+        <a href="{% url 'catalog:home' %}"
+           class="text-sm text-gray-500 hover:underline">الكتالوج</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

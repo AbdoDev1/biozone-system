@@ -4,131 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biozone — كتالوج المنتجات</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="bg-gray-50 min-h-screen" dir="rtl">
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-sm sticky top-0 z-50 px-6 py-3 flex justify-between items-center">
+<body class="bg-gray-50 min-h-screen" dir="rtl"
+      hx-on:cartUpdated="htmx.ajax('GET','{% url 'orders:cart_badge' %}',{target:'#cart-badge',swap:'innerHTML'})">
+
+<!-- Navbar -->
+<nav class="bg-white shadow-sm sticky top-0 z-50 px-6 py-3 flex justify-between items-center">
     <span class="text-xl font-bold text-blue-700">Biozone</span>
-    <div class="flex items-center gap-3">
-      {% if request.user.is_authenticated %}
-        <span class="text-sm text-gray-500">{{ request.user.username }}</span>
-        {% if request.user.role in 'ADMIN,WAREHOUSE' %}
-          <a href="{% url 'staff:dashboard' %}" class="text-sm bg-gray-800 text-white px-4 py-2 rounded-lg">لوحة التحكم</a>
-        {% else %}
-          <a href="#" class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg">سلتي</a>
-        {% endif %}
-        <a href="{% url 'accounts:logout' %}" class="text-sm text-red-500 hover:underline">خروج</a>
-      {% else %}
-        <a href="{% url 'accounts:login' %}" class="text-sm border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">تسجيل الدخول</a>
-        <a href="{% url 'accounts:register' %}" class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">سجل الآن</a>
-      {% endif %}
-    </div>
-  </nav>
 
-  <!-- Hero -->
-  <div class="bg-blue-700 text-white text-center py-10 px-4">
-    <h1 class="text-3xl font-bold mb-2">كتالوج المستلزمات الطبية</h1>
-    <p class="text-blue-200 mb-6">أكثر من {{ products|length }} منتج متاح للطلب</p>
+    <div class="flex items-center gap-3">
+
+        {% if request.user.is_authenticated %}
+
+            <span class="text-sm text-gray-500">
+                {{ request.user.username }}
+            </span>
+
+            {% if request.user.role in 'ADMIN,WAREHOUSE' %}
+
+                <a href="{% url 'staff:dashboard' %}"
+                   class="text-sm bg-gray-800 text-white px-4 py-2 rounded-lg">
+                    لوحة التحكم
+                </a>
+
+            {% elif request.user.role == 'CLIENT' %}
+
+                <a href="{% url 'orders:cart' %}"
+                   class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg relative">
+                    🛒 سلتي
+                    <span id="cart-badge" class="absolute -top-1 -left-1">
+                        {% include 'orders/partials/cart_badge.html' with count=request.session.cart|length %}
+                    </span>
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'accounts:logout' %}"
+               class="text-sm text-red-500 hover:underline">
+                خروج
+            </a>
+
+        {% else %}
+
+            <a href="{% url 'accounts:login' %}"
+               class="text-sm border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">
+                تسجيل الدخول
+            </a>
+
+            <a href="{% url 'accounts:register' %}"
+               class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                سجل الآن
+            </a>
+
+        {% endif %}
+
+    </div>
+</nav>
+
+<!-- Hero -->
+<div class="bg-blue-700 text-white text-center py-10 px-4">
+    <h1 class="text-3xl font-bold mb-2">
+        كتالوج المستلزمات الطبية
+    </h1>
+
+    <p class="text-blue-200 mb-6">
+        أكثر من {{ products|length }} منتج متاح للطلب
+    </p>
+
     <!-- Search -->
     <div class="max-w-xl mx-auto">
-      <input
-        type="text"
-        name="q"
-        placeholder="ابحث عن منتج..."
-        value="{{ search_q }}"
-        class="w-full px-4 py-3 rounded-xl text-gray-800 text-base outline-none"
-        hx-get="{% url 'catalog:home' %}"
-        hx-trigger="keyup changed delay:400ms"
-        hx-target="#product-grid"
-        hx-include="#filter-form"
-        hx-swap="innerHTML"
-      >
+        <input
+            type="text"
+            name="q"
+            placeholder="ابحث عن منتج..."
+            value="{{ search_q }}"
+            class="w-full px-4 py-3 rounded-xl text-gray-800 text-base outline-none"
+            hx-get="{% url 'catalog:home' %}"
+            hx-trigger="keyup changed delay:400ms"
+            hx-target="#product-grid"
+            hx-include="#filter-form"
+            hx-swap="innerHTML"
+        >
     </div>
-  </div>
+</div>
 
-  <div class="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+<div class="max-w-7xl mx-auto px-4 py-8 flex gap-6">
 
-    <!-- Sidebar Filters -->
+    <!-- Sidebar -->
     <form id="filter-form" class="w-56 shrink-0 space-y-6">
 
-      <!-- Categories -->
-      <div>
-        <h3 class="font-bold text-gray-700 mb-3">الأقسام</h3>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="category" value=""
-              {% if not selected_category %}checked{% endif %}
-              class="accent-blue-600"
-              hx-get="{% url 'catalog:home' %}"
-              hx-trigger="change"
-              hx-target="#product-grid"
-              hx-include="#filter-form"
-              hx-swap="innerHTML">
-            <span class="text-sm text-gray-600">الكل</span>
-          </label>
-          {% for cat in categories %}
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="category" value="{{ cat.slug }}"
-              {% if selected_category == cat.slug %}checked{% endif %}
-              class="accent-blue-600"
-              hx-get="{% url 'catalog:home' %}"
-              hx-trigger="change"
-              hx-target="#product-grid"
-              hx-include="#filter-form"
-              hx-swap="innerHTML">
-            <span class="text-sm text-gray-600">{{ cat.name }}</span>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
+        <!-- Categories -->
+        <div>
+            <h3 class="font-bold text-gray-700 mb-3">
+                الأقسام
+            </h3>
 
-      <!-- Manufacturers -->
-      {% if manufacturers %}
-      <div>
-        <h3 class="font-bold text-gray-700 mb-3">الشركة المصنعة</h3>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="manufacturer" value=""
-              {% if not selected_manufacturer %}checked{% endif %}
-              class="accent-blue-600"
-              hx-get="{% url 'catalog:home' %}"
-              hx-trigger="change"
-              hx-target="#product-grid"
-              hx-include="#filter-form"
-              hx-swap="innerHTML">
-            <span class="text-sm text-gray-600">الكل</span>
-          </label>
-          {% for m in manufacturers %}
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="manufacturer" value="{{ m }}"
-              {% if selected_manufacturer == m %}checked{% endif %}
-              class="accent-blue-600"
-              hx-get="{% url 'catalog:home' %}"
-              hx-trigger="change"
-              hx-target="#product-grid"
-              hx-include="#filter-form"
-              hx-swap="innerHTML">
-            <span class="text-sm text-gray-600">{{ m }}</span>
-          </label>
-          {% endfor %}
+            <div class="space-y-2">
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="category"
+                        value=""
+                        {% if not selected_category %}checked{% endif %}
+                        class="accent-blue-600"
+                        hx-get="{% url 'catalog:home' %}"
+                        hx-trigger="change"
+                        hx-target="#product-grid"
+                        hx-include="#filter-form"
+                        hx-swap="innerHTML">
+
+                    <span class="text-sm text-gray-600">
+                        الكل
+                    </span>
+                </label>
+
+                {% for cat in categories %}
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="category"
+                        value="{{ cat.slug }}"
+                        {% if selected_category == cat.slug %}checked{% endif %}
+                        class="accent-blue-600"
+                        hx-get="{% url 'catalog:home' %}"
+                        hx-trigger="change"
+                        hx-target="#product-grid"
+                        hx-include="#filter-form"
+                        hx-swap="innerHTML">
+
+                    <span class="text-sm text-gray-600">
+                        {{ cat.name }}
+                    </span>
+                </label>
+
+                {% endfor %}
+
+            </div>
         </div>
-      </div>
-      {% endif %}
+
+        <!-- Manufacturers -->
+        {% if manufacturers %}
+
+        <div>
+
+            <h3 class="font-bold text-gray-700 mb-3">
+                الشركة المصنعة
+            </h3>
+
+            <div class="space-y-2">
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="manufacturer"
+                        value=""
+                        {% if not selected_manufacturer %}checked{% endif %}
+                        class="accent-blue-600"
+                        hx-get="{% url 'catalog:home' %}"
+                        hx-trigger="change"
+                        hx-target="#product-grid"
+                        hx-include="#filter-form"
+                        hx-swap="innerHTML">
+
+                    <span class="text-sm text-gray-600">
+                        الكل
+                    </span>
+                </label>
+
+                {% for m in manufacturers %}
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="manufacturer"
+                        value="{{ m }}"
+                        {% if selected_manufacturer == m %}checked{% endif %}
+                        class="accent-blue-600"
+                        hx-get="{% url 'catalog:home' %}"
+                        hx-trigger="change"
+                        hx-target="#product-grid"
+                        hx-include="#filter-form"
+                        hx-swap="innerHTML">
+
+                    <span class="text-sm text-gray-600">
+                        {{ m }}
+                    </span>
+                </label>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
 
     </form>
 
     <!-- Product Grid -->
     <div class="flex-1">
-      <div id="product-grid">
-        {% include 'catalog/partials/product_grid.html' %}
-      </div>
+        <div id="product-grid">
+            {% include 'catalog/partials/product_grid.html' %}
+        </div>
     </div>
 
-  </div>
+</div>
 
 </body>
 </html>

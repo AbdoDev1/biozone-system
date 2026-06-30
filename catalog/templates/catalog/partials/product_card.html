@@ -1,47 +1,99 @@
-<a href="{% url 'catalog:product_detail' product.pk %}"
-   class="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden group block">
+{% load cart_tags %}
 
-  <!-- صورة المنتج بحجم ثابت -->
-  <div class="w-full h-48 bg-gray-100 overflow-hidden">
-    {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.name_ar }}"
-           class="w-full h-full object-contain p-2 group-hover:scale-105 transition duration-300">
-    {% else %}
-      <div class="w-full h-full flex items-center justify-center text-gray-300">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-        </svg>
-      </div>
-    {% endif %}
-  </div>
+{% with unit=product.units.first %}
+{% with inv=unit.inventory %}
 
-  <!-- بيانات المنتج -->
-  <div class="p-3 flex flex-col gap-1">
-    <p class="text-xs text-blue-600">{{ product.category.name }}</p>
-    <h3 class="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
-      {{ product.name_ar }}
-    </h3>
-    {% if product.manufacturer %}
-      <p class="text-xs text-gray-400">{{ product.manufacturer }}</p>
-    {% endif %}
+<div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden group relative">
 
-    {% with unit=product.units.first %}
-      {% if unit %}
-        <p class="text-blue-700 font-bold text-sm mt-1">
-          يبدأ من {{ unit.unit_price }} ج.م
-        </p>
+  {# ── شارة التوفر ── #}
+  <div class="absolute top-2 right-2 z-10">
+    {% if unit %}
+      {% if inv and inv.is_available %}
+        {% if inv.is_low %}
+          <span class="inline-flex items-center bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+            ⚠ كمية محدودة
+          </span>
+        {% else %}
+          <span class="inline-flex items-center bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+            ✓ متوفر
+          </span>
+        {% endif %}
+      {% else %}
+        <span class="inline-flex items-center bg-gray-100 text-gray-500 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+          ✕ غير متوفر
+        </span>
       {% endif %}
-    {% endwith %}
-
-    {% if request.user.is_authenticated and request.user.role == 'CLIENT' and request.user.status == 'ACTIVE' %}
-      <button class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg transition">
-        أضف للسلة
-      </button>
-    {% else %}
-      <button class="mt-2 w-full bg-gray-100 text-gray-500 text-xs py-2 rounded-lg">
-        سجل للطلب
-      </button>
     {% endif %}
   </div>
-</a>
+
+  <a href="{% url 'catalog:product_detail' product.pk %}" class="block">
+
+    {# ── صورة ── #}
+    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+      {% if product.image %}
+        <img src="{{ product.image.url }}"
+             alt="{{ product.name_ar }}"
+             class="w-full h-full object-contain p-2 group-hover:scale-105 transition duration-300">
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center text-gray-300">
+          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+          </svg>
+        </div>
+      {% endif %}
+    </div>
+
+    {# ── بيانات ── #}
+    <div class="p-3 flex flex-col">
+      <p class="text-xs text-blue-600">{{ product.category.name }}</p>
+      <h3 class="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+        {{ product.name_ar }}
+      </h3>
+      {% if product.manufacturer %}
+        <p class="text-xs text-gray-400 mt-1">{{ product.manufacturer }}</p>
+      {% endif %}
+      {% if unit %}
+        <p class="text-blue-700 font-bold text-sm mt-2">قطاعي: {{ unit.unit_price }} ج.م</p>
+        {% if unit.wholesale_price %}
+          <p class="text-green-700 font-semibold text-xs mt-0.5">
+            جملة: {{ unit.wholesale_price }} ج.م
+            {% if unit.wholesale_min_qty %}
+              <span class="text-gray-400">(من {{ unit.wholesale_min_qty }} وحدة)</span>
+            {% endif %}
+          </p>
+        {% endif %}
+      {% else %}
+        <p class="text-sm text-red-500 mt-2">المنتج غير متوفر حالياً</p>
+      {% endif %}
+    </div>
+  </a>
+
+  {# ── زر السلة ── #}
+  {% if unit %}
+    <div class="px-3 pb-3">
+      {% if request.user.is_authenticated and request.user.role == 'CLIENT' and request.user.status == 'ACTIVE' %}
+        {% if inv and inv.is_available %}
+          {# نشيك لو المنتج في السلة عشان نحدد اللون الابتدائي #}
+          {% with cart_qty=request.session.cart|get_item:unit.pk %}
+            {% include "orders/partials/add_button.html" with unit=unit in_cart=cart_qty %}
+          {% endwith %}
+        {% else %}
+          <button disabled
+                  class="mt-2 w-full bg-gray-100 text-gray-400 text-xs py-2 rounded-lg cursor-not-allowed">
+            غير متوفر حالياً
+          </button>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'accounts:register' %}"
+           class="mt-3 block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs py-2 rounded-lg transition">
+          سجل للطلب
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+
+{% endwith %}
+{% endwith %}

@@ -15,9 +15,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('accounts/', include('accounts.urls')),
-    path('clients/', include('clients.urls')),
-    path('products/', include('products.urls')),
-    path('inventory/', include('inventory.urls')),
     path('staff/', include('staff.urls')),
     path('catalog/', include('catalog.urls')),  # أضف ده
+    path('', include('orders.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
