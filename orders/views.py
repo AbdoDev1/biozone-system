@@ -184,3 +184,25 @@ def order_list(request):
         return redirect('catalog:home')
     orders = Order.objects.filter(client=request.user)
     return render(request, 'orders/order_list.html', {'orders': orders})
+
+
+@login_required
+def order_approve_amendment(request, pk):
+    order = get_object_or_404(Order, pk=pk, client=request.user)
+    if order.status != Order.Status.NEEDS_APPROVAL:
+        messages.error(request, 'الطلب ده مش بانتظار موافقتك.')
+        return redirect('orders:order_detail', pk=order.pk)
+    order.client_approve_amendment(actor=request.user)
+    messages.success(request, f'تمت الموافقة على التعديل، الطلب #{order.pk} مؤكد دلوقتي.')
+    return redirect('orders:order_detail', pk=order.pk)
+
+
+@login_required
+def order_reject_amendment(request, pk):
+    order = get_object_or_404(Order, pk=pk, client=request.user)
+    if order.status != Order.Status.NEEDS_APPROVAL:
+        messages.error(request, 'الطلب ده مش بانتظار موافقتك.')
+        return redirect('orders:order_detail', pk=order.pk)
+    order.client_reject_amendment(actor=request.user)
+    messages.success(request, f'تم رفض التعديل، الطلب #{order.pk} اترفض.')
+    return redirect('orders:order_detail', pk=order.pk)

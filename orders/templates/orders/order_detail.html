@@ -23,6 +23,7 @@
         </div>
         <span class="px-3 py-1 rounded-full text-sm font-medium
           {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+          {% elif order.status == 'NEEDS_APPROVAL' %}bg-orange-100 text-orange-700
           {% elif order.status == 'CONFIRMED' %}bg-green-100 text-green-700
           {% elif order.status == 'REJECTED' %}bg-red-100 text-red-600
           {% else %}bg-blue-100 text-blue-700{% endif %}">
@@ -30,12 +31,40 @@
         </span>
       </div>
 
+      {% if order.status == 'NEEDS_APPROVAL' %}
+      <div class="bg-orange-50 border border-orange-200 text-orange-800 rounded-xl p-4 mb-6 text-sm">
+        <p class="font-bold mb-2">⚠️ المخزن عدّل طلبك بسبب نقص في الكمية المتاحة</p>
+        <p class="mb-3">الإجمالي القديم كان <strong>{{ order.original_total }} ج.م</strong>، وبعد التعديل بقى <strong>{{ order.total }} ج.م</strong>. راجع التفاصيل تحت وحدد موافقتك.</p>
+        <div class="flex gap-3">
+          <form method="POST" action="{% url 'orders:order_approve_amendment' order.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition">
+              ✓ موافق على التعديل
+            </button>
+          </form>
+          <form method="POST" action="{% url 'orders:order_reject_amendment' order.pk %}"
+                onsubmit="return confirm('متأكد عايز ترفض التعديل؟ الطلب بالكامل هيترفض.');">
+            {% csrf_token %}
+            <button type="submit" class="bg-white border border-red-300 text-red-600 text-sm font-semibold px-5 py-2 rounded-lg hover:bg-red-50 transition">
+              ✕ رفض التعديل
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="space-y-3 mb-6">
         {% for item in order.items.all %}
         <div class="flex justify-between text-sm border-b pb-3">
           <div>
             <p class="font-medium text-gray-800">{{ item.product_unit.product.name_ar }}</p>
             <p class="text-gray-400 text-xs">{{ item.product_unit.name }} × {{ item.quantity }}</p>
+            {% if item.is_amended %}
+            <p class="text-xs text-orange-600 mt-1">
+              كان: {{ item.original_quantity }} وحدة بسعر {{ item.original_unit_price }} ج.م
+              (إجمالي {{ item.original_subtotal }} ج.م)
+            </p>
+            {% endif %}
           </div>
           <span class="font-semibold text-gray-800">{{ item.subtotal }} ج.م</span>
         </div>
