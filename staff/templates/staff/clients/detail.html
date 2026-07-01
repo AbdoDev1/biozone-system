@@ -6,53 +6,193 @@
     <a href="{% url 'staff:clients' %}" class="text-blue-600 hover:underline text-sm">→ العملاء</a>
 </div>
 
-<div class="bg-white rounded-2xl shadow p-8 max-w-2xl">
-    <div class="flex justify-between items-start mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">{{ profile.business_name }}</h1>
-            <p class="text-gray-500 text-sm mt-1">{{ profile.get_business_type_display }}</p>
-        </div>
-        <span class="px-3 py-1 rounded-full text-xs font-semibold
-            {% if profile.user.status == 'ACTIVE' %}bg-green-100 text-green-700
-            {% elif profile.user.status == 'PENDING' %}bg-yellow-100 text-yellow-700
-            {% else %}bg-red-100 text-red-700{% endif %}">
-            {{ profile.user.get_status_display }}
-        </span>
-    </div>
+<div x-data="{ tab: 'info' }" class="max-w-4xl">
 
-    <div class="space-y-4 text-sm">
-        <div class="flex gap-4">
-            <span class="text-gray-500 w-32">اسم المستخدم</span>
-            <span class="font-medium">{{ profile.user.username }}</span>
+    <div class="bg-white rounded-2xl shadow p-6 md:p-8 mb-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-2">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">{{ profile.business_name }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ profile.get_business_type_display }}</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold w-fit
+                {% if profile.user.status == 'ACTIVE' %}bg-green-100 text-green-700
+                {% elif profile.user.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                {{ profile.user.get_status_display }}
+            </span>
         </div>
-        <div class="flex gap-4">
-            <span class="text-gray-500 w-32">التليفون</span>
-            <span class="font-medium">{{ profile.phone }}</span>
-        </div>
-        <div class="flex gap-4">
-            <span class="text-gray-500 w-32">العنوان</span>
-            <span class="font-medium">{{ profile.address }}</span>
-        </div>
-        <div class="flex gap-4">
-            <span class="text-gray-500 w-32">تاريخ التسجيل</span>
-            <span class="font-medium">{{ profile.user.date_joined|date:"Y-m-d" }}</span>
-        </div>
-        {% if profile.verified_at %}
-        <div class="flex gap-4">
-            <span class="text-gray-500 w-32">تاريخ التفعيل</span>
-            <span class="font-medium">{{ profile.verified_at|date:"Y-m-d" }}</span>
+
+        {% if profile.user.status == 'PENDING' %}
+        <div class="flex gap-3 mt-4">
+            <a href="{% url 'staff:client_approve' profile.pk %}"
+               class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition">موافقة</a>
+            <a href="{% url 'staff:client_reject' profile.pk %}"
+               class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-lg transition">رفض</a>
         </div>
         {% endif %}
     </div>
 
-    {% if profile.user.status == 'PENDING' %}
-    <div class="flex gap-3 mt-8">
-        <a href="{% url 'staff:client_approve' profile.pk %}"
-           class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition">موافقة</a>
-        <a href="{% url 'staff:client_reject' profile.pk %}"
-           class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-lg transition">رفض</a>
+    <!-- التابات -->
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+        <div class="flex border-b overflow-x-auto text-sm">
+            <button @click="tab = 'info'"
+                    :class="tab === 'info' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-5 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                بيانات العميل
+            </button>
+            <button @click="tab = 'orders'"
+                    :class="tab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-5 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                الطلبات
+                <span class="text-xs text-gray-400">({{ orders|length }})</span>
+            </button>
+            <button @click="tab = 'invoices'"
+                    :class="tab === 'invoices' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-5 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                الفواتير
+                <span class="text-xs text-gray-400">({{ invoices|length }})</span>
+            </button>
+            <button @click="tab = 'financial'"
+                    :class="tab === 'financial' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-5 py-3 border-b-2 font-medium whitespace-nowrap transition text-gray-400">
+                حسابي المالي
+                <span class="text-xs">قريبًا</span>
+            </button>
+            <button @click="tab = 'returns'"
+                    :class="tab === 'returns' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-5 py-3 border-b-2 font-medium whitespace-nowrap transition text-gray-400">
+                المرتجعات
+                <span class="text-xs">قريبًا</span>
+            </button>
+        </div>
+
+        <!-- تبويب: بيانات العميل -->
+        <div x-show="tab === 'info'" class="p-6 md:p-8 space-y-4 text-sm">
+            <div class="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span class="text-gray-500 sm:w-32">اسم المستخدم</span>
+                <span class="font-medium">{{ profile.user.username }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span class="text-gray-500 sm:w-32">التليفون</span>
+                <span class="font-medium">{{ profile.phone }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span class="text-gray-500 sm:w-32">العنوان</span>
+                <span class="font-medium">{{ profile.address }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span class="text-gray-500 sm:w-32">تاريخ التسجيل</span>
+                <span class="font-medium">{{ profile.user.date_joined|date:"Y-m-d" }}</span>
+            </div>
+            {% if profile.verified_at %}
+            <div class="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span class="text-gray-500 sm:w-32">تاريخ التفعيل</span>
+                <span class="font-medium">{{ profile.verified_at|date:"Y-m-d" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- تبويب: الطلبات -->
+        <div x-show="tab === 'orders'" class="p-4 md:p-6">
+            {% if orders %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-right text-gray-500 border-b">
+                            <th class="py-2 px-2">رقم الطلب</th>
+                            <th class="py-2 px-2">التاريخ</th>
+                            <th class="py-2 px-2">الحالة</th>
+                            <th class="py-2 px-2">الإجمالي</th>
+                            <th class="py-2 px-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="border-b last:border-0 hover:bg-gray-50">
+                            <td class="py-2 px-2 font-medium">#{{ order.pk }}</td>
+                            <td class="py-2 px-2 text-gray-500">{{ order.created_at|date:"Y-m-d" }}</td>
+                            <td class="py-2 px-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                                    {% if order.status == 'DELIVERED' %}bg-green-100 text-green-700
+                                    {% elif order.status == 'CONFIRMED' %}bg-blue-100 text-blue-700
+                                    {% elif order.status == 'REJECTED' %}bg-red-100 text-red-700
+                                    {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-2 font-medium">{{ order.total }} ج.م</td>
+                            <td class="py-2 px-2">
+                                <a href="{% url 'staff:order_detail' order.pk %}" class="text-blue-600 hover:underline">تفاصيل</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-400 text-sm py-8 text-center">العميل ده لسه معملش أي طلب.</p>
+            {% endif %}
+        </div>
+
+        <!-- تبويب: الفواتير -->
+        <div x-show="tab === 'invoices'" class="p-4 md:p-6">
+            {% if invoices %}
+            <div class="space-y-3">
+                {% for invoice in invoices %}
+                <details class="border rounded-lg overflow-hidden">
+                    <summary class="flex flex-wrap justify-between items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 list-none">
+                        <div class="flex items-center gap-3">
+                            <span class="font-semibold text-blue-700">{{ invoice.invoice_number }}</span>
+                            <span class="text-gray-400 text-xs">طلب #{{ invoice.order_id }}</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="text-gray-500">{{ invoice.issued_at|date:"Y-m-d" }}</span>
+                            <span class="font-semibold">{{ invoice.total }} ج.م</span>
+                        </div>
+                    </summary>
+                    <div class="border-t bg-gray-50 px-4 py-3">
+                        <table class="w-full text-xs sm:text-sm">
+                            <thead>
+                                <tr class="text-right text-gray-500">
+                                    <th class="py-1.5 px-2">الصنف</th>
+                                    <th class="py-1.5 px-2">الوحدة</th>
+                                    <th class="py-1.5 px-2">الكمية</th>
+                                    <th class="py-1.5 px-2">السعر</th>
+                                    <th class="py-1.5 px-2">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in invoice.items.all %}
+                                <tr class="border-t border-gray-200">
+                                    <td class="py-1.5 px-2">{{ item.product_name }}</td>
+                                    <td class="py-1.5 px-2 text-gray-500">{{ item.unit_name }}</td>
+                                    <td class="py-1.5 px-2">{{ item.quantity }}</td>
+                                    <td class="py-1.5 px-2">{{ item.unit_price }} ج.م</td>
+                                    <td class="py-1.5 px-2 font-medium">{{ item.subtotal }} ج.م</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="text-left mt-2 pt-2 border-t border-gray-200 font-semibold text-sm">
+                            الإجمالي: {{ invoice.total }} ج.م
+                        </div>
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-400 text-sm py-8 text-center">مفيش فواتير للعميل ده لحد دلوقتي.</p>
+            {% endif %}
+        </div>
+
+        <!-- تبويبات قريبًا -->
+        <div x-show="tab === 'financial'" class="p-8 text-center text-gray-400 text-sm">
+            حسابي المالي — هيتفعّل في المرحلة 10.
+        </div>
+        <div x-show="tab === 'returns'" class="p-8 text-center text-gray-400 text-sm">
+            المرتجعات — هتتفعّل في المرحلة 11.
+        </div>
     </div>
-    {% endif %}
 </div>
 
 {% endblock %}

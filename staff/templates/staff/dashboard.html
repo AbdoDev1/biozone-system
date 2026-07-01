@@ -23,7 +23,8 @@
 {% if low_stock %}
 <div class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-semibold text-red-600 mb-4">⚠️ مخزون منخفض</h2>
-    <table class="w-full text-sm">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm min-w-[480px]">
         <thead class="bg-gray-50 text-gray-600">
             <tr>
                 <th class="px-4 py-2 text-right">المنتج</th>
@@ -43,6 +44,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 {% endif %}
 

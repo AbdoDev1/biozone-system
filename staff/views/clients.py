@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from accounts.models import User, ClientProfile
+from orders.models import Order
+from invoices.models import Invoice
 
 
 def staff_required(view_func):
@@ -30,7 +32,13 @@ def client_list(request):
 @staff_required
 def client_detail(request, pk):
     profile = get_object_or_404(ClientProfile, pk=pk)
-    return render(request, 'staff/clients/detail.html', {'profile': profile})
+    orders = Order.objects.filter(client=profile.user).prefetch_related('items')
+    invoices = Invoice.objects.filter(order__client=profile.user).prefetch_related('items')
+    return render(request, 'staff/clients/detail.html', {
+        'profile': profile,
+        'orders': orders,
+        'invoices': invoices,
+    })
 
 
 @staff_required

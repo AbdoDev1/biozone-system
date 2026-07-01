@@ -25,7 +25,14 @@ DEBUG = config('DEBUG', cast=bool)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".trycloudflare.com",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.trycloudflare.com",
+]
 
 
 # Application definition
@@ -43,8 +50,8 @@ INSTALLED_APPS = [
     'inventory',
     'staff',
     'catalog',
-    'orders'
-
+    'orders',
+    'invoices',
 ]
 
 MIDDLEWARE = [

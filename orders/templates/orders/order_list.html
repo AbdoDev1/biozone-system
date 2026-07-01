@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>طلباتي — Biozone</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -21,12 +22,12 @@
     <div class="space-y-4">
       {% for order in orders %}
       <a href="{% url 'orders:order_detail' order.pk %}"
-         class="bg-white rounded-2xl shadow-sm p-5 flex justify-between items-center hover:shadow-md transition block">
+         class="bg-white rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:shadow-md transition block">
         <div>
           <p class="font-bold text-gray-800">طلب #{{ order.pk }}</p>
           <p class="text-xs text-gray-400 mt-1">{{ order.created_at|date:"d/m/Y" }}</p>
         </div>
-        <div class="text-left flex items-center gap-4">
+        <div class="flex items-center gap-4">
           <span class="font-bold text-blue-700">{{ order.total }} ج.م</span>
           <span class="px-3 py-1 rounded-full text-xs font-medium
             {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-700
@@ -43,7 +44,7 @@
     {% else %}
     <div class="text-center py-20 text-gray-400">
       <p class="text-5xl mb-4">📋</p>
-      <p class="text-xl">مفيش طلبات لحد دلوقتي</p>
+      <p class="text-xl">لا يوجد طلبات </p>
     </div>
     {% endif %}
   </div>

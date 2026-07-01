@@ -2,12 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>السلة — Biozone</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50" dir="rtl">
 
-  <nav class="bg-white shadow-sm px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+  <nav class="bg-white shadow-sm px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-2 sticky top-0 z-50">
     <a href="{% url 'catalog:home' %}" class="font-bold text-blue-700 text-xl">Biozone</a>
     <div class="flex items-center gap-3">
       <span class="text-sm text-gray-500">{{ request.user.username }}</span>
@@ -31,8 +32,8 @@
       </span>
     </div>
     {% endif %}
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-      <table class="w-full text-sm">
+    <div class="bg-white rounded-2xl shadow-sm overflow-x-auto mb-6">
+      <table class="w-full text-sm min-w-[640px]">
         <thead class="bg-gray-50 text-gray-600 border-b">
           <tr>
             <th class="px-4 py-3 text-right">المنتج</th>
@@ -91,23 +92,23 @@
     </div>
 
     <!-- الإجمالي -->
-    <div class="bg-white rounded-2xl shadow-sm p-6 flex justify-between items-center">
+    <div class="bg-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
       <div>
         <p class="text-gray-500 text-sm">الإجمالي</p>
         <p class="text-3xl font-bold text-blue-700">{{ total }} ج.م</p>
       </div>
-      <div class="flex gap-3">
+      <div class="flex flex-col sm:flex-row gap-3">
         <a href="{% url 'catalog:home' %}"
-           class="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl hover:bg-gray-50 transition text-sm">
+           class="text-center border border-gray-200 text-gray-600 px-6 py-3 rounded-xl hover:bg-gray-50 transition text-sm">
           متابعة التسوق
         </a>
         {% if below_min %}
-        <span class="bg-gray-200 text-gray-400 px-6 py-3 rounded-xl text-sm font-semibold cursor-not-allowed">
+        <span class="text-center bg-gray-200 text-gray-400 px-6 py-3 rounded-xl text-sm font-semibold cursor-not-allowed">
           إتمام الطلب
         </span>
         {% else %}
         <a href="{% url 'orders:checkout' %}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition text-sm font-semibold">
+           class="text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition text-sm font-semibold">
           إتمام الطلب
         </a>
         {% endif %}

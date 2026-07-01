@@ -146,7 +146,7 @@ class Order(models.Model):
 
     @transaction.atomic
     def mark_delivered(self, actor=None):
-        """تسليم الطلب — بيحوّل الكمية المحجوزة لصادر فعلي من المخزون."""
+        """تسليم الطلب — بيحوّل الكمية المحجوزة لصادر فعلي من المخزون، وبيصدر الفاتورة تلقائيًا."""
         from inventory.models import Inventory, StockMovement
         item_unit_ids = [item.product_unit_id for item in self.items.all()]
         locked_inventories = {
@@ -179,6 +179,9 @@ class Order(models.Model):
         self._actor = actor
         self.status = self.Status.DELIVERED
         self.save()
+
+        from invoices.models import Invoice
+        Invoice.issue_for_order(self, actor=actor)
 
     @transaction.atomic
     def amend_item_quantity(self, item, new_quantity, actor=None):

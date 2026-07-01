@@ -14,10 +14,10 @@
       hx-on:cartUpdated="htmx.ajax('GET','{% url 'orders:cart_badge' %}',{target:'#cart-badge',swap:'innerHTML'})">
 
 <!-- Navbar -->
-<nav class="bg-white shadow-sm sticky top-0 z-50 px-6 py-3 flex justify-between items-center">
+<nav class="bg-white shadow-sm sticky top-0 z-50 px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-2">
     <span class="text-xl font-bold text-blue-700">Biozone</span>
 
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
 
         {% if request.user.is_authenticated %}
 
@@ -98,10 +98,10 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+<div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
 
     <!-- Sidebar -->
-    <form id="filter-form" class="w-56 shrink-0 space-y-6">
+    <form id="filter-form" class="w-full md:w-56 md:shrink-0 space-y-6">
 
         <!-- Categories -->
         <div>

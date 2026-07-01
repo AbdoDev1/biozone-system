@@ -6,8 +6,9 @@
     <title>{% block title %}Biozone ERP{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="bg-gray-100 min-h-screen" x-data="{ sidebarOpen: true }">
+<body class="bg-gray-100 min-h-screen" x-data="{ sidebarOpen: window.innerWidth >= 768 }">
 <!-- Topbar -->
 <header class="fixed top-0 right-0 left-0 h-14 bg-white shadow z-30 flex items-center px-4 gap-4">
     <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-800">
@@ -22,10 +23,17 @@
            class="text-sm text-red-500 hover:underline">خروج</a>
     </div>
 </header>
+
+<!-- Backdrop (موبايل بس — بيقفل السايدبار لما تدوس برّاه) -->
+<div x-show="sidebarOpen"
+     @click="sidebarOpen = false"
+     x-cloak
+     class="fixed inset-0 bg-black/30 z-10 md:hidden"></div>
+
 <!-- Sidebar -->
-<aside class="fixed top-14 right-0 h-full bg-white shadow-md z-20 transition-all duration-300"
-       :class="sidebarOpen ? 'w-56' : 'w-0 overflow-hidden'">
-    <nav class="p-4 space-y-1 text-sm">
+<aside class="fixed top-14 bottom-0 right-0 bg-white shadow-md z-20 transition-all duration-300 overflow-hidden"
+       :class="sidebarOpen ? 'w-64 md:w-56' : 'w-0'">
+    <nav class="p-4 space-y-1 text-sm w-64 md:w-56">
         <a href="{% url 'staff:dashboard' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600">
             🏠 الرئيسية
@@ -55,7 +63,7 @@
 </aside>
 <!-- Main Content -->
 <main class="pt-14 transition-all duration-300"
-      :class="sidebarOpen ? 'mr-56' : 'mr-0'">
+      :class="sidebarOpen ? 'md:mr-56' : 'mr-0'">
     {% if messages %}
     <div class="fixed top-16 left-1/2 -translate-x-1/2 z-50 space-y-2">
         {% for message in messages %}

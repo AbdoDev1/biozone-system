@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 
 from orders.models import Order, OrderItem
+from invoices.models import Invoice
 
 
 def _staff_required(user):
@@ -92,8 +94,10 @@ def order_detail(request, pk):
                 messages.error(request, 'لازم الطلب يكون مؤكد الأول قبل التسليم.')
             else:
                 try:
-                    order.mark_delivered(actor=request.user)
-                    messages.success(request, f'تم تسليم الطلب #{order.pk}.')
+                    with transaction.atomic():
+                        order.mark_delivered(actor=request.user)
+                        Invoice.issue_for_order(order, actor=request.user)
+                    messages.success(request, f'تم تسليم الطلب #{order.pk} وإصدار الفاتورة.')
                 except ValidationError as e:
                     messages.error(request, f'تعذّر تسليم الطلب: {"، ".join(e.messages)}')
             return redirect('staff:order_detail', pk=order.pk)

@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>طلب #{{ order.pk }} — Biozone</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -16,7 +17,7 @@
 
   <div class="max-w-2xl mx-auto px-4 py-8">
     <div class="bg-white rounded-2xl shadow-sm p-6">
-      <div class="flex justify-between items-start mb-6">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6">
         <div>
           <h1 class="text-2xl font-bold text-gray-800">طلب #{{ order.pk }}</h1>
           <p class="text-gray-400 text-sm mt-1">{{ order.created_at|date:"d/m/Y — H:i" }}</p>
@@ -35,7 +36,7 @@
       <div class="bg-orange-50 border border-orange-200 text-orange-800 rounded-xl p-4 mb-6 text-sm">
         <p class="font-bold mb-2">⚠️ المخزن عدّل طلبك بسبب نقص في الكمية المتاحة</p>
         <p class="mb-3">الإجمالي القديم كان <strong>{{ order.original_total }} ج.م</strong>، وبعد التعديل بقى <strong>{{ order.total }} ج.م</strong>. راجع التفاصيل تحت وحدد موافقتك.</p>
-        <div class="flex gap-3">
+        <div class="flex flex-col sm:flex-row gap-3">
           <form method="POST" action="{% url 'orders:order_approve_amendment' order.pk %}">
             {% csrf_token %}
             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition">
