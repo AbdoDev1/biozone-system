@@ -29,6 +29,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     ".trycloudflare.com",
+
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.trycloudflare.com",
